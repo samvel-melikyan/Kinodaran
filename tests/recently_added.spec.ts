@@ -53,6 +53,8 @@ test.describe('Recently Added', () => {
 
 
   test.only('Movie should be added to List for logged in user', async ({page}) => {
+    // await cleanList(page);
+
     const section = await page.locator('.mb-v2-14.mt-v2-md-20'); 
     let item = await section.first().locator('.movie-item.movie-item__md').first(); 
     await item.hover();
@@ -62,19 +64,13 @@ test.describe('Recently Added', () => {
     const myList = await section.first().textContent() || '';        
     await expect(myList.toLowerCase()).toContain('My List'.toLowerCase()); 
 
-    await page.waitForTimeout(4000); // Wait for the page to update
-
-    item = await section.first().locator('.movie-item.movie-item__md').first();
+    item = await page.locator('.mb-v2-14.mt-v2-md-20').first().locator('.movie-item.movie-item__md').first();
     await item.hover();
-    await await item.locator('button:has(svg path[d*="M19.2251"])').click();
-    const ok = await section.first().textContent() || '';
-    
-    await expect(await page.getByText('My List')).not.toBeVisible();
-    console.log(ok, '--------------');
-    
-    await expect(ok).not.toContain('My List'.toLowerCase());
+    await item.locator('button:has(svg path[d*="M19.2251"])').click();
+    const first_section = await page.locator('.mb-v2-14.mt-v2-md-20').first().textContent() || '';
+    console.log(`First section text: ${first_section}`);
+    await expect(first_section).not.toContain('My List'.toLowerCase());
   }); 
-
 
 
 });
@@ -86,6 +82,16 @@ async function logIn(page, email: string, password: string){
   await page.getByRole('button', { name: 'Sign In' }).click();
 }
 
-// await expect (page.locator('.action-btns > button').first()).toBeVisible();
-// await expect ( page.locator('.media-rating-button-group > button').first()).toBeVisible();
-// await expect ( page.locator('.fade-item > .btn').first()).toBeVisible();
+async function cleanList(page){
+  await page.locator('a[href="/my-list"]').click();
+  await page.locator('.btn.btn-v2.btn-v2-outline.btn-v2-sm').click();
+  let checks = await page.locator('.form-control') || [];
+  checks = checks.pop();
+  for (let elem of checks) {
+    await elem.check();
+  }
+  await page.getByText('Delete').click();
+}
+
+// await page.getByRole('listitem').filter({ hasText: 'Monsieur Aznavour12+20242h' }).locator('label span').click();
+// await page.getByRole('listitem').filter({ hasText: '+2025' }).locator('label span').click();
